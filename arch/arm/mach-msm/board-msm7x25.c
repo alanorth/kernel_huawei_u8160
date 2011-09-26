@@ -3950,17 +3950,9 @@ int board_surport_fingers(bool * is_surport_fingers)
     {
          return -ENOMEM;
     }
-
-    if( machine_is_msm7x25_u8500() || machine_is_msm7x25_um840() \
-     || machine_is_msm7x25_u8350() || machine_is_msm7x25_u8130() \
-     || machine_is_msm7x25_c8510() || machine_is_msm7x25_u8160() )
-    {
+	// RETURN TRUE FOR ALL DEVICES - tilal6991 - 26/09/2011
          *is_surport_fingers = true;
-    }
-    else    
-    {
-        *is_surport_fingers = false;
-    }
+
 
     return result;
 }
