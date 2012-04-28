@@ -27,7 +27,7 @@ enum {
 	DEBUG_USER_STATE = 1U << 0,
 	DEBUG_SUSPEND = 1U << 2,
 };
-static int debug_mask = DEBUG_USER_STATE | DEBUG_SUSPEND;
+static int debug_mask = DEBUG_USER_STATE;
 module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
 static DEFINE_MUTEX(early_suspend_lock);
@@ -95,10 +95,7 @@ static void early_suspend(struct work_struct *work)
 		pr_info("early_suspend: call handlers\n");
 	list_for_each_entry(pos, &early_suspend_handlers, link) {
 		if (pos->suspend != NULL)
-		{
 			pos->suspend(pos);
-			printk("s: %x\n",(unsigned int)pos->suspend);
-		}
 	}
 	mutex_unlock(&early_suspend_lock);
 
@@ -136,10 +133,7 @@ static void late_resume(struct work_struct *work)
 		pr_info("late_resume: call handlers\n");
 	list_for_each_entry_reverse(pos, &early_suspend_handlers, link)
 		if (pos->resume != NULL)
-		{
 			pos->resume(pos);
-			printk("r: %x\n",(unsigned int)pos->resume);
-		}
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("late_resume: done\n");
 abort:
@@ -152,26 +146,16 @@ void request_suspend_state(suspend_state_t new_state)
 	int old_sleep;
 
 	spin_lock_irqsave(&state_lock, irqflags);
-
-    if((state == 0) || (state == SUSPEND_REQUESTED_AND_SUSPENDED))
-    {
-        /* this is a valid request, do nothing */
-    }
-    else
-    {
-        pr_info("request_suspend_state, invalid state: (%d)(%d->%d)\n",
-            state, requested_suspend_state, new_state);
-    }
 	old_sleep = state & SUSPEND_REQUESTED;
 	if (debug_mask & DEBUG_USER_STATE) {
 		struct timespec ts;
 		struct rtc_time tm;
 		getnstimeofday(&ts);
 		rtc_time_to_tm(ts.tv_sec, &tm);
-		pr_info("request_suspend_state: %s (%d)(%d->%d) at %lld "
+		pr_info("request_suspend_state: %s (%d->%d) at %lld "
 			"(%d-%02d-%02d %02d:%02d:%02d.%09lu UTC)\n",
-			new_state != PM_SUSPEND_ON ? "sleep" : "wakeup", state,
-			requested_suspend_state, new_state, 
+			new_state != PM_SUSPEND_ON ? "sleep" : "wakeup",
+			requested_suspend_state, new_state,
 			ktime_to_ns(ktime_get()),
 			tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 			tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);

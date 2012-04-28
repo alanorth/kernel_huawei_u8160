@@ -131,12 +131,9 @@ static int wakelock_stats_show(struct seq_file *m, void *unused)
 			"\ttotal_time\tsleep_time\tmax_time\tlast_change\n");
 	list_for_each_entry(lock, &inactive_locks, link)
 		ret = print_lock_stat(m, lock);
-	ret = seq_printf(m,"!\n!\n!\n");	
-
 	for (type = 0; type < WAKE_LOCK_TYPE_COUNT; type++) {
 		list_for_each_entry(lock, &active_wake_locks[type], link)
 			ret = print_lock_stat(m, lock);
-		ret = seq_printf(m,"!\n!\n!\n");   
 	}
 	spin_unlock_irqrestore(&list_lock, irqflags);
 	return 0;
@@ -439,8 +436,7 @@ static void wake_lock_internal(
 		list_add(&lock->link, &active_wake_locks[type]);
 	}
 	if (type == WAKE_LOCK_SUSPEND) {
-		if (lock == &main_wake_lock)
-			current_event_num++;
+		current_event_num++;
 #ifdef CONFIG_WAKELOCK_STAT
 		if (lock == &main_wake_lock)
 			update_sleep_wait_stats_locked(1);
